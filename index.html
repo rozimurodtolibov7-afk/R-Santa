@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>R-Santa: Sovg'a Tut</title>
+    <style>
+        :root { --snow: #ffffff; --night: #1a1a2e; --red: #e74c3c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial Rounded MT Bold', sans-serif; }
+        body { background: var(--night); overflow: hidden; touch-action: none; }
+        
+        /* Snowfall effect */
+        .snowflake { position: absolute; color: white; font-size: 1em; top: -20px; animation: fall linear infinite; z-index: 1; }
+        @keyframes fall { to { transform: translateY(100vh); } }
+
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-size: 24px; z-index: 100; text-shadow: 0 0 10px #000; }
+        
+        .catcher { position: absolute; bottom: 40px; width: 80px; height: 80px; font-size: 60px; display: flex; align-items: center; justify-content: center; z-index: 50; }
+        
+        .gift { position: absolute; font-size: 40px; z-index: 10; }
+
+        #msg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
+        .btn { background: var(--red); border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; color: white; margin-top: 20px; box-shadow: 0 5px 0 #c0392b; }
+    </style>
+</head>
+<body>
+
+<div id="ui">🎁 Sovg'alar: <span id="score">0</span></div>
+
+<div id="msg">
+    <h1 style="color: #2ecc71;">YANGI YILINGIZ BILAN! 🎄</h1>
+    <p>Siz <span id="final-score">0</span> ta sovg'a to'pladingiz!</p>
+    <button class="btn" onclick="location.reload()">QAYTA O'YNASH</button>
+</div>
+
+<div class="catcher" id="santa">🛷</div>
+
+<script>
+    const santa = document.getElementById('santa');
+    const scoreEl = document.getElementById('score');
+    let score = 0;
+    let gameActive = true;
+
+    // Snowflakes generation
+    function createSnow() {
+        const snow = document.createElement('div');
+        snow.className = 'snowflake';
+        snow.innerText = '❄';
+        snow.style.left = Math.random() * 100 + 'vw';
+        snow.style.animationDuration = Math.random() * 3 + 2 + 's';
+        snow.style.opacity = Math.random();
+        document.body.appendChild(snow);
+        setTimeout(() => snow.remove(), 5000);
+    }
+    setInterval(createSnow, 100);
+
+    // Controls
+    window.addEventListener('mousemove', (e) => moveSanta(e.clientX));
+    window.addEventListener('touchmove', (e) => moveSanta(e.touches[0].clientX));
+
+    function moveSanta(x) {
+        if(!gameActive) return;
+        let pos = x - 40;
+        if(pos < 0) pos = 0;
+        if(pos > window.innerWidth - 80) pos = window.innerWidth - 80;
+        santa.style.left = pos + 'px';
+    }
+
+    function spawnGift() {
+        if(!gameActive) return;
+        const gift = document.createElement('div');
+        gift.className = 'gift';
+        gift.innerText = ['🎁', '⭐', '🍭', '🦌', '🧨'][Math.floor(Math.random()*5)];
+        gift.style.left = Math.random() * (window.innerWidth - 40) + 'px';
+        gift.style.top = '-50px';
+        document.body.appendChild(gift);
+
+        let fallSpeed = Math.random() * 2 + 3;
+        let pos = -50;
+
+        function animate() {
+            if(!gameActive) { gift.remove(); return; }
+            pos += fallSpeed;
+            gift.style.top = pos + 'px';
+
+            const sRect = santa.getBoundingClientRect();
+            const gRect = gift.getBoundingClientRect();
+
+            if (!(sRect.right < gRect.left || sRect.left > gRect.right || sRect.bottom < gRect.top || sRect.top > gRect.bottom)) {
+                if(gift.innerText === '🧨') {
+                    gameOver();
+                } else {
+                    score += 1;
+                    scoreEl.innerText = score;
+                    gift.remove();
+                    return;
+                }
+            }
+
+            if (pos > window.innerHeight) {
+                gift.remove();
+            } else {
+                requestAnimationFrame(animate);
+            }
+        }
+        requestAnimationFrame(animate);
+        setTimeout(spawnGift, 800);
+    }
+
+    function gameOver() {
+        gameActive = false;
+        document.getElementById('msg').style.display = 'flex';
+        document.getElementById('final-score').innerText = score;
+    }
+
+    spawnGift();
+</script>
+</body>
+</html>
