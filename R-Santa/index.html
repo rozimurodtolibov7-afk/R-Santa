@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>R-Santa: Magic Tree</title>
+    <style>
+        :root { --red: #ff4d4d; --dark: #0f0f1b; --gold: #ffd700; }
+        body { background: var(--dark); color: white; margin: 0; overflow: hidden; font-family: sans-serif; touch-action: none; }
+
+        /* RC Hisoblagichi */
+        #top-bar { position: fixed; top: 15px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
+        .rc-display { background: rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 20px; border: 1px solid var(--gold); font-weight: bold; font-size: 18px; color: var(--gold); }
+
+        /* O'yin maydoni */
+        #stage { height: 60vh; display: flex; justify-content: center; align-items: flex-end; position: relative; overflow: hidden; }
+        #tree-img { height: 350px; z-index: 5; pointer-events: none; }
+        .toy-on-tree { position: absolute; width: 40px; height: 40px; z-index: 10; cursor: move; }
+
+        /* Pastki Menyu */
+        #menu-grid { height: 40vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; border-radius: 25px 25px 0 0; }
+        .menu-btn { background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 12px; }
+        .menu-btn img { width: 30px; margin-bottom: 5px; }
+        .btn-save { background: var(--red) !important; }
+        .menu-btn:active { transform: scale(0.95); opacity: 0.8; }
+
+        /* Modal oynalar */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; padding: 20px; }
+        .modal-content { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .shop-item { background: #1e1e2f; padding: 10px; border-radius: 10px; text-align: center; }
+        
+        /* Spritesheet orqali o'yinchoqni qirqish */
+        .toy-sprite {
+            width: 50px; height: 50px; margin: 0 auto 10px;
+            background-image: url('assets/images/toys_sheet.png'); /* O'yinchoqlar rasmi nomi */
+            background-size: 200px 150px; /* 4 ustun, 3 qator bo'lsa */
+            display: block;
+        }
+
+        /* Santa Pop-up */
+        #santa-gift { position: fixed; bottom: -400px; left: 50%; transform: translateX(-50%); transition: 0.8s; z-index: 3000; text-align: center; }
+        #santa-gift.active { bottom: 120px; }
+    </style>
+</head>
+<body>
+
+<div id="top-bar">
+    <div class="rc-display">💰 <span id="rc-count">100</span> RC</div>
+</div>
+
+<div id="stage">
+    <img src="assets/images/tree_empty.png" id="tree-img" alt="Tree">
+</div>
+
+<div id="santa-gift">
+    <img src="assets/images/santa.png" width="200">
+    <div style="background:var(--red); padding:10px; border-radius:15px; margin-top:-20px;">HO-HO-HO! +100 RC!</div>
+</div>
+
+<div id="menu-grid">
+    <button class="menu-btn" onclick="openModal('shop')"><img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png">Shop</button>
+    <button class="menu-btn" onclick="openModal('chest')"><img src="https://cdn-icons-png.flaticon.com/512/679/679720.png">Chest</button>
+    <button class="menu-btn" onclick="openModal('gifts')"><img src="https://cdn-icons-png.flaticon.com/512/4213/4213958.png">Gifts</button>
+    <button class="menu-btn" onclick="openModal('collection')"><img src="https://cdn-icons-png.flaticon.com/512/1375/1375106.png">Collection</button>
+    <button class="menu-btn btn-save" onclick="handleSave()"><img src="https://cdn-icons-png.flaticon.com/512/482/482459.png">Save</button>
+    <button class="menu-btn" onclick="openModal('rating')"><img src="https://cdn-icons-png.flaticon.com/512/3112/3112946.png">Rating</button>
+</div>
+
+<div id="modal-shop" class="modal">
+    <h2 style="display:flex; justify-content:space-between">Shop <span onclick="closeModal()">×</span></h2>
+    <div class="modal-content">
+        <div class="shop-item">
+            <div class="toy-sprite" style="background-position: 0 0;"></div>
+            <p>50 RC</p>
+            <button onclick="buyToy(0, 50)">Buy</button>
+        </div>
+        <div class="shop-item">
+            <div class="toy-sprite" style="background-position: -50px 0;"></div>
+            <p>80 RC</p>
+            <button onclick="buyToy(1, 80)">Buy</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let gameState = { rc: 100, inventory: [], gifts: [], collection: [] };
+
+    function openModal(id) { document.getElementById('modal-' + id).style.display = 'block'; }
+    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+
+    function buyToy(index, price) {
+        if (gameState.rc >= price) {
+            gameState.rc -= price;
+            gameState.inventory.push(index);
+            updateUI();
+            alert("Sotib olindi! Chest bo'limini tekshiring.");
+        } else {
+            alert("RC yetarli emas!");
+        }
+    }
+
+    function handleSave() {
+        gameState.rc += 100;
+        updateUI();
+        const santa = document.getElementById('santa-gift');
+        santa.classList.add('active');
+        setTimeout(() => santa.classList.remove('active'), 3000);
+    }
+
+    function updateUI() {
+        document.getElementById('rc-count').innerText = gameState.rc;
+    }
+
+    // O'yinchoqlarni surish (Drag and Drop) funksiyasi kelajakda shu yerga qo'shiladi
+</script>
+</body>
+</html>
