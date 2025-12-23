@@ -3,20 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R-Santa: Interactive Tree</title>
+    <title>R-Santa: Custom Decorator</title>
     <style>
-        :root { --red: #ff4d4d; --gold: #ffd700; --dark: #0f0f1b; }
+        :root { --red: #ff4d4d; --gold: #ffd700; --dark: #050510; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: var(--dark); color: white; margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
 
         /* RC Panel */
         #top-bar { position: fixed; top: 10px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
-        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 20px; font-weight: bold; color: var(--gold); }
+        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 20px; font-weight: bold; color: var(--gold); backdrop-filter: blur(5px); }
 
         /* Game Stage */
-        #stage { height: 60vh; display: flex; align-items: center; justify-content: center; position: relative; padding-top: 50px; }
-        #tree-area { position: relative; display: inline-block; }
-        #main-tree { font-size: 180px; line-height: 1; user-select: none; }
+        #stage { height: 60vh; display: flex; align-items: center; justify-content: center; position: relative; padding-top: 40px; }
+        
+        /* Taqir Archa Rasmi */
+        #main-tree { 
+            height: 380px; 
+            user-select: none; 
+            pointer-events: none; /* O'yinchoqlarni surishga xalaqit bermasligi uchun */
+            filter: drop-shadow(0 0 15px rgba(0,255,0,0.1));
+        }
         
         /* O'yinchoq stili */
         .toy-on-tree { 
@@ -25,28 +31,27 @@
             cursor: move; 
             z-index: 100; 
             user-select: none; 
-            touch-action: none; 
-            display: inline-block;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+            touch-action: none;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
         }
 
         /* Santa Animation */
-        #santa-gift { position: fixed; bottom: -300px; left: 50%; transform: translateX(-50%); transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; text-align: center; }
+        #santa-gift { position: fixed; bottom: -400px; left: 50%; transform: translateX(-50%); transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; text-align: center; }
         #santa-gift.active { bottom: 150px; }
-        .santa-emoji { font-size: 80px; }
+        #santa-img { width: 220px; }
 
         /* Menu */
         #menu { height: 40vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.1); }
         .btn { background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; font-weight: bold; }
-        .btn b { font-size: 24px; margin-bottom: 5px; }
-        .btn:active { transform: scale(0.95); }
+        .btn b { font-size: 26px; margin-bottom: 5px; }
+        .btn:active { transform: scale(0.92); }
         .btn-save { background: var(--red) !important; }
 
         /* Modals */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; padding: 20px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .card { background: #1e1e2f; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #1e1e2f; padding: 15px; border-radius: 15px; text-align: center; }
     </style>
 </head>
 <body>
@@ -56,15 +61,14 @@
 </div>
 
 <div id="stage">
-    <div id="tree-area">
-        <div id="main-tree">🎄</div>
-    </div>
+    <img src="https://png.pngtree.com/png-vector/20230906/ourmid/pngtree-green-christmas-tree-png-image_9997439.png" id="main-tree">
 </div>
 
 <div id="santa-gift">
-    <div class="santa-emoji">🎅</div>
-    <div style="background:var(--red); padding:10px 20px; border-radius:15px; border:2px solid var(--gold); margin-top:-10px;">
-        <b>HO-HO-HO!</b><br>+100 RC & Gift!
+    <div style="font-size: 100px;">🎅</div>
+    <div style="background:var(--red); padding:10px 20px; border-radius:15px; border:2px solid var(--gold); margin-top:-20px;">
+        <h3 style="margin:0">HO-HO-HO!</h3>
+        <p style="margin:5px 0 0">+100 RC & Gift!</p>
     </div>
 </div>
 
@@ -78,20 +82,18 @@
 </div>
 
 <div id="modal-shop" class="modal">
-    <div class="modal-header"><h2>Shop</h2><span onclick="closeModal()" style="font-size:30px">×</span></div>
+    <div class="modal-header"><h2>Shop</h2><span onclick="closeModal()" style="font-size:40px">×</span></div>
     <div class="grid" id="shop-list"></div>
 </div>
+
 <div id="modal-chest" class="modal">
-    <div class="modal-header"><h2>My Chest</h2><span onclick="closeModal()" style="font-size:30px">×</span></div>
+    <div class="modal-header"><h2>Chest</h2><span onclick="closeModal()" style="font-size:40px">×</span></div>
     <div class="grid" id="chest-list"></div>
 </div>
-<div id="modal-gifts" class="modal"><div class="modal-header"><h2>Gifts</h2><span onclick="closeModal()" style="font-size:30px">×</span></div><div class="grid" id="gift-list"></div></div>
-<div id="modal-coll" class="modal"><div class="modal-header"><h2>Collection</h2><span onclick="closeModal()" style="font-size:30px">×</span></div><div class="grid" id="coll-list"></div></div>
-<div id="modal-rate" class="modal"><div class="modal-header"><h2>Rating</h2><span onclick="closeModal()" style="font-size:30px">×</span></div><div id="rate-list" style="margin-top:20px"></div></div>
 
 <script>
-    let db = { rc: 100, inventory: ['⭐'], gifts: [], collection: [], rating: [{n: "Player1", rc: 5000}, {n: "You", rc: 100}] };
-    const shopItems = [{e: '🔴', p: 50}, {e: '🔵', p: 50}, {e: '🔔', p: 100}, {e: '🍭', p: 150}, {e: '❄️', p: 200}, {e: '✨', p: 300}];
+    let db = { rc: 100, inventory: ['⭐', '🔔'], gifts: [] };
+    const shopItems = [{e: '🔴', p: 50}, {e: '🔵', p: 50}, {e: '🌟', p: 100}, {e: '🍭', p: 150}];
 
     function openModal(id) { document.getElementById('modal-' + id).style.display = 'block'; render(id); }
     function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
@@ -105,22 +107,19 @@
             db.inventory.forEach(i => html += `<div class="card" onclick="placeToy('${i}')"><h1>${i}</h1><small>Tap to add</small></div>`);
             document.getElementById('chest-list').innerHTML = html || 'Empty';
         }
-        // ... Rating va Gifts renderi (oldindagidek)
     }
 
     function buy(emoji, price) {
-        if(db.rc >= price) { db.rc -= price; db.inventory.push(emoji); updateRC(); render('shop'); } else alert("Not enough RC!");
+        if(db.rc >= price) { db.rc -= price; db.inventory.push(emoji); updateRC(); render('shop'); } else alert("No RC!");
     }
 
-    // O'yinchoqni archaga qo'yish
     function placeToy(emoji) {
         const toy = document.createElement('div');
         toy.className = 'toy-on-tree';
         toy.innerText = emoji;
         toy.style.left = '50%';
-        toy.style.top = '50%';
+        toy.style.top = '40%';
         
-        // Drag and Drop mantiqi (Sichqoncha va Sensor uchun)
         let isDragging = false;
         const move = (e) => {
             if (!isDragging) return;
@@ -128,7 +127,6 @@
             let y = (e.touches ? e.touches[0].clientY : e.clientY);
             toy.style.left = (x - 20) + 'px';
             toy.style.top = (y - 20) + 'px';
-            toy.style.position = 'fixed'; // Erkin harakatlanish uchun
         };
 
         toy.addEventListener('mousedown', () => isDragging = true);
@@ -138,23 +136,20 @@
         window.addEventListener('mousemove', move);
         window.addEventListener('touchmove', move);
 
-        document.body.appendChild(toy);
+        document.getElementById('stage').appendChild(toy);
         closeModal();
     }
 
     function saveGame() {
         const santa = document.getElementById('santa-gift');
         db.rc += 100;
-        db.gifts.push(shopItems[Math.floor(Math.random()*shopItems.length)].e);
         updateRC();
         santa.classList.add('active');
-        setTimeout(() => { 
-            santa.classList.remove('active'); 
-            // O'yinchoqlarni archada qoldirish yoki tozalash (o'yinchi xohishiga qarab)
-        }, 3000);
+        setTimeout(() => santa.classList.remove('active'), 3000);
     }
 
     function updateRC() { document.getElementById('rc-val').innerText = db.rc; }
+    updateRC();
 </script>
 </body>
 </html>
