@@ -3,117 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R-Santa: Tree Decorator</title>
+    <title>R-Santa: Magic Tree</title>
     <style>
-        :root { --gold: #f1c40f; --red: #e74c3c; --snow: #f8f9fa; }
-        body { background: #050510; color: white; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        
-        /* Background Snow Animation */
-        .snowflake { position: fixed; top: -10px; color: white; z-index: 0; pointer-events: none; animation: fall linear infinite; }
-        @keyframes fall { to { transform: translateY(105vh); } }
+        :root { --red: #ff4d4d; --gold: #ffd700; --dark: #0f0f1b; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--dark); color: white; margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* Main Game Stage */
-        #stage { height: 60vh; display: flex; justify-content: center; align-items: flex-end; position: relative; z-index: 10; padding-bottom: 20px; }
-        #tree-wrapper { position: relative; display: inline-block; }
-        #main-tree { height: 380px; pointer-events: none; }
-        
-        .toy { position: absolute; width: 40px; height: 40px; cursor: move; z-index: 100; touch-action: none; }
+        /* HUD */
+        #top-bar { position: fixed; top: 10px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
+        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 20px; font-weight: bold; color: var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+
+        /* Game Stage */
+        #stage { height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative; padding-bottom: 20px; }
+        #main-tree { font-size: 150px; line-height: 1; filter: drop-shadow(0 0 20px rgba(0,255,0,0.2)); transition: 0.3s; z-index: 5; }
+        .toy-on-tree { position: absolute; font-size: 30px; z-index: 10; cursor: move; user-select: none; }
 
         /* Santa Animation */
-        #santa-gift { position: fixed; bottom: -500px; left: 50%; transform: translateX(-50%); transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; text-align: center; }
-        #santa-gift.active { bottom: 120px; }
-        #santa-gift img { width: 220px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
+        #santa-gift { position: fixed; bottom: -300px; left: 50%; transform: translateX(-50%); transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; text-align: center; }
+        #santa-gift.active { bottom: 150px; }
+        .santa-emoji { font-size: 80px; }
 
-        /* Navigation Menu */
-        #menu { height: 40vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; position: relative; }
-        .nav-btn { background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-        .nav-btn span { font-size: 24px; margin-bottom: 5px; }
-        .nav-btn:active { background: #27ae60; transform: scale(0.95); }
+        /* Menu */
+        #menu { height: 40vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn { background: rgba(255,255,255,0.1); border: none; color: white; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn b { font-size: 24px; margin-bottom: 5px; }
+        .btn:active { transform: scale(0.92); background: rgba(255,255,255,0.2); }
+        .btn-save { background: var(--red) !important; box-shadow: 0 5px 15px rgba(255,77,77,0.3); }
 
         /* Modals */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; padding: 20px; overflow-y: auto; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; padding: 20px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .close { font-size: 30px; cursor: pointer; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .item-card { background: #1e1e2f; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #333; }
-        .item-card img { width: 50px; margin-bottom: 10px; }
+        .card { background: #1e1e2f; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .card h1 { margin: 0; font-size: 40px; }
     </style>
 </head>
 <body>
 
+<div id="top-bar">
+    <div class="rc-panel">💰 <span id="rc-val">100</span> RC</div>
+</div>
+
 <div id="stage">
-    <div id="tree-wrapper">
-        <img src="https://png.pngtree.com/png-vector/20230906/ourmid/pngtree-green-christmas-tree-png-image_9997439.png" id="main-tree">
-    </div>
+    <div id="main-tree">🎄</div>
 </div>
 
 <div id="santa-gift">
-    <img src="https://gemini-user-uploads.googleusercontent.com/..." id="santa-img">
-    <div style="background:var(--red); padding:10px 20px; border-radius:15px; border:2px solid var(--gold); margin-top:-30px; position:relative;">
-        <h3 style="margin:0">HO-HO-HO!</h3>
-        <p style="margin:5px 0 0">+100 RC & New Toy!</p>
+    <div class="santa-emoji">🎅</div>
+    <div style="background:var(--red); padding:10px 20px; border-radius:15px; border:2px solid var(--gold); margin-top:-10px;">
+        <b>HO-HO-HO!</b><br>+100 RC & New Toy!
     </div>
 </div>
 
 <div id="menu">
-    <button class="nav-btn" onclick="openModal('shop')"><span>🛒</span>Shop</button>
-    <button class="nav-btn" onclick="openModal('chest')"><span>📦</span>Chest</button>
-    <button class="nav-btn" onclick="openModal('gifts')"><span>🎁</span>Gifts</button>
-    <button class="nav-btn" onclick="openModal('collection')"><span>🖼️</span>Collection</button>
-    <button class="nav-btn" onclick="saveTree()" style="background:var(--red)"><span>💾</span>Save</button>
-    <button class="nav-btn" onclick="openModal('rating')"><span>🏆</span>Rating</button>
+    <button class="btn" onclick="openModal('shop')"><b>🛒</b>Shop</button>
+    <button class="btn" onclick="openModal('chest')"><b>📦</b>Chest</button>
+    <button class="btn" onclick="openModal('gifts')"><b>🎁</b>Gifts</button>
+    <button class="btn" onclick="openModal('coll')"><b>🖼️</b>Collection</button>
+    <button class="btn btn-save" onclick="saveGame()"><b>💾</b>Save</button>
+    <button class="btn" onclick="openModal('rate')"><b>🏆</b>Rating</button>
 </div>
 
 <div id="modal-shop" class="modal">
-    <h2>Christmas Shop <span style="float:right" onclick="closeModal()">×</span></h2>
-    <div class="grid" id="shop-content"></div>
+    <div class="modal-header"><h2>Shop</h2><span class="close" onclick="closeModal()">×</span></div>
+    <div class="grid" id="shop-list"></div>
+</div>
+
+<div id="modal-chest" class="modal">
+    <div class="modal-header"><h2>My Chest</h2><span class="close" onclick="closeModal()">×</span></div>
+    <div class="grid" id="chest-list"></div>
+</div>
+
+<div id="modal-gifts" class="modal">
+    <div class="modal-header"><h2>Gifts</h2><span class="close" onclick="closeModal()">×</span></div>
+    <div class="grid" id="gift-list"></div>
+</div>
+
+<div id="modal-coll" class="modal">
+    <div class="modal-header"><h2>Collection</h2><span class="close" onclick="closeModal()">×</span></div>
+    <div class="grid" id="coll-list"></div>
+</div>
+
+<div id="modal-rate" class="modal">
+    <div class="modal-header"><h2>Rating</h2><span class="close" onclick="closeModal()">×</span></div>
+    <div id="rate-list" style="margin-top:20px"></div>
 </div>
 
 <script>
-    let rc = 100;
-    let myToys = [];
-    const shopToys = [
-        { id: 1, img: 'https://png.pngtree.com/png-clipart/20220910/ourmid/pngtree-christmas-ball-ornaments-png-image_6150247.png', price: 50 },
-        { id: 2, img: 'https://png.pngtree.com/png-vector/20231109/ourmid/pngtree-christmas-star-yellow-png-image_10526322.png', price: 80 }
+    let db = {
+        rc: 100,
+        inventory: ['⭐'],
+        gifts: [],
+        collection: [],
+        rating: [{n: "Player1", rc: 5000}, {n: "Player2", rc: 2500}, {n: "You", rc: 100}]
+    };
+
+    const shopItems = [
+        {e: '🔴', p: 50}, {e: '🔵', p: 50}, {e: '🔔', p: 100}, {e: '🍭', p: 150}, {e: '❄️', p: 200}, {e: '✨', p: 300}
     ];
 
     function openModal(id) {
         document.getElementById('modal-' + id).style.display = 'block';
-        if(id === 'shop') renderShop();
+        render(id);
     }
     function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
-    function renderShop() {
+    function render(id) {
         let html = '';
-        shopToys.forEach(t => {
-            html += `<div class="item-card"><img src="${t.img}"><p>${t.price} RC</p><button onclick="buy(${t.id})">Buy</button></div>`;
-        });
-        document.getElementById('shop-content').innerHTML = html;
+        if(id === 'shop') {
+            shopItems.forEach(i => html += `<div class="card"><h1>${i.e}</h1><p>${i.p} RC</p><button onclick="buy('${i.e}', ${i.p})">Buy</button></div>`);
+            document.getElementById('shop-list').innerHTML = html;
+        } else if(id === 'chest') {
+            db.inventory.forEach(i => html += `<div class="card" onclick="place('${i}')"><h1>${i}</h1><small>Tap to place</small></div>`);
+            document.getElementById('chest-list').innerHTML = html || 'Empty';
+        } else if(id === 'gifts') {
+            db.gifts.forEach(i => html += `<div class="card"><h1>${i}</h1><p>From Santa</p></div>`);
+            document.getElementById('gift-list').innerHTML = html || 'No gifts yet';
+        } else if(id === 'coll') {
+            db.collection.forEach((c, idx) => html += `<div class="card"><h1>🎄</h1><p>Design #${idx+1}</p></div>`);
+            document.getElementById('coll-list').innerHTML = html || 'No designs';
+        } else if(id === 'rate') {
+            db.rating.sort((a,b) => b.rc - a.rc);
+            db.rating.forEach(r => html += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333"><span>${r.n}</span><span>${r.rc} RC</span></div>`);
+            document.getElementById('rate-list').innerHTML = html;
+        }
     }
 
-    function buy(id) {
-        let toy = shopToys.find(x => x.id === id);
-        if(rc >= toy.price) {
-            rc -= toy.price;
-            myToys.push(toy.img);
-            alert("Purchased! Check your Chest.");
+    function buy(emoji, price) {
+        if(db.rc >= price) {
+            db.rc -= price;
+            db.inventory.push(emoji);
+            updateRC();
+            alert("Purchased!");
+            render('shop');
         } else alert("Not enough RC!");
     }
 
-    function saveTree() {
-        const santa = document.getElementById('santa-gift');
-        santa.classList.add('active');
-        rc += 100;
-        setTimeout(() => { santa.classList.remove('active'); }, 3000);
+    function place(emoji) {
+        const toy = document.createElement('div');
+        toy.className = 'toy-on-tree';
+        toy.innerText = emoji;
+        toy.style.left = (Math.random() * 40 + 30) + '%';
+        toy.style.top = (Math.random() * 30 + 30) + '%';
+        document.getElementById('stage').appendChild(toy);
+        closeModal();
     }
 
-    // Snow animation
-    setInterval(() => {
-        const s = document.createElement('div');
-        s.className = 'snowflake'; s.innerHTML = '❄';
-        s.style.left = Math.random() * 100 + 'vw';
-        s.style.animationDuration = Math.random() * 3 + 2 + 's';
-        document.body.appendChild(s);
-        setTimeout(() => s.remove(), 5000);
-    }, 200);
+    function saveGame() {
+        const santa = document.getElementById('santa-gift');
+        db.rc += 100;
+        let newGift = shopItems[Math.floor(Math.random()*shopItems.length)].e;
+        db.gifts.push(newGift);
+        db.collection.push('design');
+        db.rating.find(x => x.n === "You").rc = db.rc;
+        updateRC();
+        
+        santa.classList.add('active');
+        setTimeout(() => {
+            santa.classList.remove('active');
+            document.querySelectorAll('.toy-on-tree').forEach(t => t.remove());
+        }, 3000);
+    }
+
+    function updateRC() { document.getElementById('rc-val').innerText = db.rc; }
 </script>
 </body>
 </html>
