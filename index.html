@@ -3,61 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R-Santa: Magic Journey</title>
+    <title>R-Santa: 100% Working</title>
     <style>
         :root { --red: #ff4d4d; --gold: #ffd700; --dark: #050510; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--dark); color: white; margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
+        body { background: var(--dark); color: white; margin: 0; font-family: sans-serif; overflow: hidden; touch-action: none; }
 
         /* Qor effekti */
         .snowflake { position: fixed; top: -10px; color: white; pointer-events: none; z-index: 1; animation: fall linear infinite; }
-        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+        @keyframes fall { to { transform: translateY(110vh); } }
 
         /* RC Panel */
         #top-bar { position: fixed; top: 15px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
-        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 20px; font-weight: bold; color: var(--gold); backdrop-filter: blur(10px); }
+        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 20px; font-weight: bold; color: var(--gold); }
 
         /* Game Stage */
         #stage { height: 60vh; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
-        #main-tree { height: 350px; user-select: none; pointer-events: none; filter: drop-shadow(0 0 20px rgba(255,255,255,0.2)); }
         
-        .toy-on-tree { position: absolute; font-size: 40px; cursor: move; z-index: 100; user-select: none; touch-action: none; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); }
+        /* Taqir Archa SVG (Bu rasm yuklanmaslik muammosini hal qiladi) */
+        .tree-svg { width: 250px; filter: drop-shadow(0 0 20px rgba(46, 204, 113, 0.4)); }
+        
+        .toy-on-tree { position: absolute; font-size: 45px; cursor: move; z-index: 100; user-select: none; touch-action: none; }
 
         /* Santa */
-        #santa-gift { position: fixed; bottom: -500px; left: 50%; transform: translateX(-50%); transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; text-align: center; }
+        #santa-gift { position: fixed; bottom: -500px; left: 50%; transform: translateX(-50%); transition: 0.8s; z-index: 2000; text-align: center; }
         #santa-gift.active { bottom: 120px; }
 
         /* Menu */
         #menu { height: 40vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 1000; }
-        .btn { background: rgba(255,255,255,0.08); border: none; color: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn { background: rgba(255,255,255,0.08); border: none; color: white; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
         .btn b { font-size: 26px; margin-bottom: 5px; }
         .btn:active { transform: scale(0.9); }
         .btn-save { background: var(--red) !important; }
 
-        /* Modals */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; display: none; padding: 25px; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        /* Modal */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; display: none; padding: 25px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .card { background: #161625; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-<audio id="bg-music" loop src="https://www.chosic.com/wp-content/uploads/2021/11/We-Wish-You-A-Merry-Christmas.mp3"></audio>
+<audio id="bg-music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
 <div id="top-bar">
     <div class="rc-panel">💰 <span id="rc-val">100</span> RC</div>
 </div>
 
 <div id="stage">
-    <img src="https://png.pngtree.com/png-vector/20230906/ourmid/pngtree-green-christmas-tree-png-image_9997439.png" id="main-tree">
+    <svg class="tree-svg" viewBox="0 0 200 260">
+        <polygon points="100,10 180,110 20,110" fill="#2ecc71" />
+        <polygon points="100,60 190,170 10,170" fill="#27ae60" />
+        <polygon points="100,110 200,240 0,240" fill="#1e8449" />
+        <rect x="85" y="240" width="30" height="20" fill="#5d4037" />
+    </svg>
 </div>
 
 <div id="santa-gift">
     <div style="font-size: 100px;">🎅</div>
-    <div style="background:var(--red); padding:15px 30px; border-radius:20px; border:3px solid var(--gold);">
+    <div style="background:var(--red); padding:15px; border-radius:20px; border:2px solid var(--gold);">
         <h2 style="margin:0">HO-HO-HO!</h2>
-        <p style="margin:5px 0 0">+100 RC & Gift!</p>
+        <p>+100 RC & Gift!</p>
     </div>
 </div>
 
@@ -67,39 +73,36 @@
     <button class="btn" onclick="openModal('gifts')"><b>🎁</b>Gifts</button>
     <button class="btn" onclick="openModal('coll')"><b>🖼️</b>Coll.</button>
     <button class="btn btn-save" onclick="saveGame()"><b>💾</b>Save</button>
-    <button class="btn" onclick="toggleMusic()"><b>🎵</b>Music</button>
+    <button class="btn" onclick="playMusic()"><b>🎵</b>Music</button>
 </div>
 
 <div id="modal-shop" class="modal">
-    <div class="modal-header"><h2>Shop</h2><span onclick="closeModal()" style="font-size:40px">&times;</span></div>
+    <h2>Shop <span onclick="closeModal()" style="float:right">×</span></h2>
     <div class="grid" id="shop-list"></div>
 </div>
 <div id="modal-chest" class="modal">
-    <div class="modal-header"><h2>Chest</h2><span onclick="closeModal()" style="font-size:40px">&times;</span></div>
+    <h2>Chest <span onclick="closeModal()" style="float:right">×</span></h2>
     <div class="grid" id="chest-list"></div>
 </div>
 
 <script>
     let db = { rc: 100, inventory: ['⭐', '🔔'], gifts: [] };
-    const shopItems = [{e:'🔴', p:50}, {e:'🔵', p:50}, {e:'🌟', p:100}, {e:'🍭', p:120}, {e:'❄️', p:80}];
+    const shopItems = [{e:'🔴', p:50}, {e:'🔵', p:50}, {e:'🌟', p:100}, {e:'❄️', p:80}];
 
-    // Qor yog'ishi
-    function createSnow() {
-        const snow = document.createElement('div');
-        snow.className = 'snowflake';
-        snow.innerHTML = '❄';
-        snow.style.left = Math.random() * 100 + 'vw';
-        snow.style.fontSize = Math.random() * 10 + 10 + 'px';
-        snow.style.opacity = Math.random();
-        snow.style.animationDuration = Math.random() * 3 + 2 + 's';
-        document.body.appendChild(snow);
-        setTimeout(() => snow.remove(), 5000);
-    }
-    setInterval(createSnow, 200);
+    // Qor yog'ishi (Optimallashgan)
+    setInterval(() => {
+        const s = document.createElement('div');
+        s.className = 'snowflake'; s.innerHTML = '❄';
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.fontSize = (Math.random() * 10 + 10) + 'px';
+        s.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        document.body.appendChild(s);
+        setTimeout(() => s.remove(), 5000);
+    }, 300);
 
-    function toggleMusic() {
-        const m = document.getElementById('bg-music');
-        return m.paused ? m.play() : m.pause();
+    function playMusic() {
+        const audio = document.getElementById('bg-music');
+        audio.play().catch(() => alert("Iltimos, musiqani yoqish uchun ekranga bir marta bosing!"));
     }
 
     function openModal(id) { document.getElementById('modal-' + id).style.display = 'block'; render(id); }
@@ -108,16 +111,16 @@
     function render(id) {
         let html = '';
         if(id === 'shop') {
-            shopItems.forEach(i => html += `<div class="card"><h1>${i.e}</h1><p>${i.p} RC</p><button onclick="buy('${i.e}', ${i.p})" style="width:100%; padding:10px; border-radius:10px; background:var(--gold); border:none; font-weight:bold;">Buy</button></div>`);
+            shopItems.forEach(i => html += `<div class="card"><h1>${i.e}</h1><p>${i.p} RC</p><button onclick="buy('${i.e}', ${i.p})">Buy</button></div>`);
             document.getElementById('shop-list').innerHTML = html;
         } else if(id === 'chest') {
             db.inventory.forEach(i => html += `<div class="card" onclick="placeToy('${i}')"><h1>${i}</h1><p>Add</p></div>`);
-            document.getElementById('chest-list').innerHTML = html || 'Empty';
+            document.getElementById('chest-list').innerHTML = html;
         }
     }
 
     function buy(e, p) {
-        if(db.rc >= p) { db.rc -= p; db.inventory.push(e); updateRC(); render('shop'); } else alert("No RC!");
+        if(db.rc >= p) { db.rc -= p; db.inventory.push(e); updateRC(); render('shop'); }
     }
 
     function placeToy(emoji) {
@@ -127,6 +130,8 @@
         toy.style.left = '50%'; toy.style.top = '40%';
         
         let isDragging = false;
+        const start = () => isDragging = true;
+        const end = () => isDragging = false;
         const move = (e) => {
             if (!isDragging) return;
             let x = (e.touches ? e.touches[0].clientX : e.clientX);
@@ -134,10 +139,11 @@
             toy.style.left = (x - 20) + 'px';
             toy.style.top = (y - 20) + 'px';
         };
-        toy.addEventListener('mousedown', () => isDragging = true);
-        toy.addEventListener('touchstart', () => isDragging = true);
-        window.addEventListener('mouseup', () => isDragging = false);
-        window.addEventListener('touchend', () => isDragging = false);
+
+        toy.addEventListener('mousedown', start);
+        toy.addEventListener('touchstart', start);
+        window.addEventListener('mouseup', end);
+        window.addEventListener('touchend', end);
         window.addEventListener('mousemove', move);
         window.addEventListener('touchmove', move);
 
