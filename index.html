@@ -3,43 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R-Santa: Stable Edition</title>
+    <title>R-Santa: RC Edition</title>
     <style>
-        :root { --red: #ff4d4d; --gold: #ffd700; --dark: #050510; --green: #2ecc71; }
+        :root { --red: #ff4d4d; --gold: #ffd700; --dark: #050510; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: var(--dark); color: white; margin: 0; font-family: sans-serif; overflow: hidden; touch-action: none; }
 
-        /* Qor yog'ishi */
+        /* Qor */
         .snowflake { position: fixed; top: -10px; color: white; pointer-events: none; z-index: 1; animation: fall linear infinite; }
         @keyframes fall { to { transform: translateY(110vh); } }
 
         /* RC Panel */
         #top-bar { position: fixed; top: 15px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
-        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 20px; font-weight: bold; color: var(--gold); backdrop-filter: blur(5px); }
+        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 22px; font-weight: bold; color: var(--gold); backdrop-filter: blur(10px); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
 
-        /* Game Stage */
-        #stage { height: 65vh; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
-        
-        /* Taqir Archa (SVG - Doim ishlaydi) */
-        .tree-svg { width: 260px; filter: drop-shadow(0 0 20px rgba(46, 204, 113, 0.4)); }
-        
+        /* Stage */
+        #stage { height: 60vh; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
+        .tree-svg { width: 280px; filter: drop-shadow(0 0 20px rgba(46, 204, 113, 0.4)); }
         .toy-on-tree { position: absolute; font-size: 45px; cursor: move; z-index: 100; user-select: none; touch-action: none; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); }
 
         /* Santa */
         #santa-gift { position: fixed; bottom: -500px; left: 50%; transform: translateX(-50%); transition: 0.8s; z-index: 2000; text-align: center; }
         #santa-gift.active { bottom: 150px; }
 
-        /* Yangilangan Menu (Faqat 4 ta tugma) */
-        #menu { height: 35vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 1000; }
-        .btn { background: rgba(255,255,255,0.08); border: none; color: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 16px; }
-        .btn b { font-size: 30px; margin-bottom: 5px; }
+        /* Menu */
+        #menu { height: 40vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn { background: rgba(255,255,255,0.08); border: none; color: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .btn b { font-size: 35px; margin-bottom: 5px; }
         .btn:active { transform: scale(0.95); background: rgba(255,255,255,0.15); }
-        .btn-save { background: var(--red) !important; box-shadow: 0 5px 15px rgba(255,77,77,0.3); }
+        .btn-rc { background: linear-gradient(45deg, #ff4d4d, #c0392b) !important; box-shadow: 0 5px 20px rgba(255,77,77,0.4); }
 
         /* Modal */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; display: none; padding: 25px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .card { background: #161625; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #333; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; display: none; padding: 25px; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .card { background: #161625; padding: 15px; border-radius: 20px; text-align: center; border: 1px solid #333; }
+        .card h1 { font-size: 45px; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -61,49 +59,59 @@
     <div style="font-size: 100px;">🎅</div>
     <div style="background:var(--red); padding:15px 30px; border-radius:20px; border:3px solid var(--gold);">
         <h2 style="margin:0">HO-HO-HO!</h2>
-        <p style="margin:5px 0 0">+100 RC berildi!</p>
+        <p>+100 RC sovg'a!</p>
     </div>
 </div>
 
 <div id="menu">
     <button class="btn" onclick="openModal('shop')"><b>🛒</b>Shop</button>
     <button class="btn" onclick="openModal('chest')"><b>📦</b>Chest</button>
-    <button class="btn btn-save" onclick="saveGame()"><b>💾</b>Save</button>
-    <button class="btn" onclick="playMusic()"><b>🎵</b>Music</button>
+    <button class="btn btn-rc" onclick="saveAndRC()"><b>💎</b>RC</button>
+    <button class="btn" onclick="playHolidayMusic()"><b>🎵</b>Music</button>
 </div>
 
 <div id="modal-shop" class="modal">
-    <h2 style="display:flex; justify-content:space-between">Shop <span onclick="closeModal()">×</span></h2>
+    <h2 style="display:flex; justify-content:space-between">Bayram Do'koni <span onclick="closeModal()">×</span></h2>
     <div class="grid" id="shop-list"></div>
 </div>
 
 <div id="modal-chest" class="modal">
-    <h2 style="display:flex; justify-content:space-between">Chest <span onclick="closeModal()">×</span></h2>
+    <h2 style="display:flex; justify-content:space-between">Mening Chest <span onclick="closeModal()">×</span></h2>
     <div class="grid" id="chest-list"></div>
 </div>
 
 <script>
-    let db = { rc: 100, inventory: ['⭐', '🔔'] };
-    const shopItems = [{e:'🔴', p:50}, {e:'🔵', p:50}, {e:'🌟', p:100}, {e:'❄️', p:80}, {e:'🍭', p:120}];
+    let db = { rc: 100, inventory: ['⭐'] };
+    
+    // Turfa xil o'yinchoqlar
+    const shopItems = [
+        {e:'🔴', p:30}, {e:'🔵', p:30}, {e:'🟡', p:30}, {e:'🟢', p:30}, {e:'🟣', p:40}, {e:'🟠', p:40},
+        {e:'🌟', p:100}, {e:'✨', p:150}, {e:'❄️', p:80}, {e:'🔔', p:60}, {e:'🍭', p:90}, {e:'🎁', p:200},
+        {e:'🕯️', p:120}, {e:'🎀', p:70}, {e:'🍪', p:50}, {e:'🌙', p:110}, {e:'💎', p:500}, {e:'🦄', p:1000}
+    ];
 
-    // Ovoz sintezi (Musiqa ishlamasa ham bu 100% ishlaydi)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playNote(freq, dur) {
+    
+    function playNote(freq, dur, time) {
         const osc = audioCtx.createOscillator();
         const msg = audioCtx.createGain();
         osc.connect(msg); msg.connect(audioCtx.destination);
         osc.frequency.value = freq;
-        osc.start();
-        msg.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-        osc.stop(audioCtx.currentTime + dur);
+        osc.start(audioCtx.currentTime + time);
+        msg.gain.setValueAtTime(0.1, audioCtx.currentTime + time);
+        msg.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + time + dur);
+        osc.stop(audioCtx.currentTime + time + dur);
     }
 
-    function playMusic() {
-        const melody = [523, 587, 659, 523, 523, 587, 659, 523, 659, 698, 783];
-        melody.forEach((f, i) => setTimeout(() => playNote(f, 0.5), i * 300));
+    function playHolidayMusic() {
+        // Jingle Bells ohangi
+        const melody = [
+            659, 659, 659, 659, 659, 659, 659, 783, 523, 587, 659,
+            698, 698, 698, 698, 698, 659, 659, 659, 659, 587, 587, 659, 587, 783
+        ];
+        melody.forEach((f, i) => playNote(f, 0.4, i * 0.35));
     }
 
-    // Qor
     setInterval(() => {
         const s = document.createElement('div');
         s.className = 'snowflake'; s.innerHTML = '❄';
@@ -119,15 +127,21 @@
     function render(id) {
         let html = '';
         if(id === 'shop') {
-            shopItems.forEach(i => html += `<div class="card"><h1>${i.e}</h1><p>${i.p} RC</p><button onclick="buy('${i.e}', ${i.p})" style="width:100%; border:none; background:var(--gold); padding:8px; border-radius:10px; font-weight:bold">Buy</button></div>`);
+            shopItems.forEach(i => html += `<div class="card"><h1>${i.e}</h1><p>${i.p} RC</p><button onclick="buy('${i.e}', ${i.p})" style="width:100%; border:none; background:var(--gold); padding:10px; border-radius:12px; font-weight:bold">BUY</button></div>`);
             document.getElementById('shop-list').innerHTML = html;
         } else if(id === 'chest') {
-            db.inventory.forEach(i => html += `<div class="card" onclick="placeToy('${i}')"><h1>${i}</h1><p>Qo'shish</p></div>`);
+            db.inventory.forEach(i => html += `<div class="card" onclick="placeToy('${i}')"><h1>${i}</h1><p>Add</p></div>`);
             document.getElementById('chest-list').innerHTML = html;
         }
     }
 
-    function buy(e, p) { if(db.rc >= p) { db.rc -= p; db.inventory.push(e); updateRC(); render('shop'); } else alert("RC kam!"); }
+    function buy(e, p) { 
+        if(db.rc >= p) { 
+            db.rc -= p; db.inventory.push(e); 
+            updateRC(); render('shop'); 
+            playNote(880, 0.1, 0); 
+        } else alert("RC yetarli emas!"); 
+    }
 
     function placeToy(emoji) {
         const toy = document.createElement('div');
@@ -154,11 +168,11 @@
         closeModal();
     }
 
-    function saveGame() {
+    function saveAndRC() {
         const santa = document.getElementById('santa-gift');
         db.rc += 100; updateRC();
         santa.classList.add('active');
-        playNote(880, 0.5); // "Ding" tovushi
+        playNote(523, 0.5, 0);
         setTimeout(() => santa.classList.remove('active'), 3000);
     }
 
