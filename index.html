@@ -3,117 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R-Santa: Sovg'a Tut</title>
+    <title>R-Santa: Gift Delivery</title>
     <style>
-        :root { --snow: #ffffff; --night: #1a1a2e; --red: #e74c3c; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial Rounded MT Bold', sans-serif; }
-        body { background: var(--night); overflow: hidden; touch-action: none; }
+        :root { --red: #e74c3c; --snow: #ecf0f1; --night: #1a1a2e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--night); overflow: hidden; touch-action: none; color: white; }
         
-        /* Snowfall effect */
-        .snowflake { position: absolute; color: white; font-size: 1em; top: -20px; animation: fall linear infinite; z-index: 1; }
-        @keyframes fall { to { transform: translateY(100vh); } }
+        /* Language Selection Screen */
+        #lang-screen {
+            position: fixed; inset: 0; background: var(--night);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .lang-btn {
+            width: 200px; padding: 15px; margin: 10px; border: none; border-radius: 10px;
+            font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .uz { background: #005a9c; color: white; }
+        .ru { background: white; color: #0039a6; }
+        .en { background: #cf142b; color: white; }
 
-        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-size: 24px; z-index: 100; text-shadow: 0 0 10px #000; }
+        /* HUD (Heads-up Display) */
+        #hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 20px; z-index: 100; display: none; }
         
-        .catcher { position: absolute; bottom: 40px; width: 80px; height: 80px; font-size: 60px; display: flex; align-items: center; justify-content: center; z-index: 50; }
+        .santa { position: absolute; bottom: 30px; font-size: 50px; transition: left 0.1s linear; z-index: 50; }
+        .house { position: absolute; bottom: 0; font-size: 60px; z-index: 10; }
+        .gift { position: absolute; font-size: 30px; z-index: 20; }
         
-        .gift { position: absolute; font-size: 40px; z-index: 10; }
-
-        #msg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
-        .btn { background: var(--red); border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; color: white; margin-top: 20px; box-shadow: 0 5px 0 #c0392b; }
+        #msg { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .btn { background: var(--red); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 20px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div id="ui">🎁 Sovg'alar: <span id="score">0</span></div>
-
-<div id="msg">
-    <h1 style="color: #2ecc71;">YANGI YILINGIZ BILAN! 🎄</h1>
-    <p>Siz <span id="final-score">0</span> ta sovg'a to'pladingiz!</p>
-    <button class="btn" onclick="location.reload()">QAYTA O'YNASH</button>
+<div id="lang-screen">
+    <h1 style="margin-bottom: 20px;">CHOOSE LANGUAGE / ТИЛНИ ТАНЛАНГ</h1>
+    <button class="lang-btn uz" onclick="startGame('uz')">O'zbekcha 🇺🇿</button>
+    <button class="lang-btn ru" onclick="startGame('ru')">Русский 🇷🇺</button>
+    <button class="lang-btn en" onclick="startGame('en')">English 🇬🇧</button>
 </div>
 
-<div class="catcher" id="santa">🛷</div>
+<div id="hud">
+    <div><span id="label-score">Score</span>: <span id="score">0</span></div>
+    <div><span id="label-time">Time</span>: <span id="time">30</span>s</div>
+</div>
+
+<div id="msg">
+    <h1 id="game-over-title">O'YIN TUGADI</h1>
+    <p id="final-res">Siz 0 ta sovg'a yetkazdingiz</p>
+    <button class="btn" onclick="location.reload()" id="btn-restart">QAYTA O'YNASH</button>
+</div>
+
+<div class="santa" id="santa">🎅</div>
 
 <script>
-    const santa = document.getElementById('santa');
-    const scoreEl = document.getElementById('score');
+    const i18n = {
+        uz: { score: "Sovg'alar", time: "Vaqt", over: "O'YIN TUGADI", res: "Siz {s} ta sovg'a yetkazdingiz", restart: "QAYTA O'YNASH" },
+        ru: { score: "Подарки", time: "Время", over: "ИГРА ОКОНЧЕНА", res: "Вы доставили {s} подарков", restart: "ИГРАТЬ СНОВА" },
+        en: { score: "Gifts", time: "Time", over: "GAME OVER", res: "You delivered {s} gifts", restart: "PLAY AGAIN" }
+    };
+
+    let currentLang = 'en';
     let score = 0;
-    let gameActive = true;
+    let timeLeft = 30;
+    let gameActive = false;
 
-    // Snowflakes generation
-    function createSnow() {
-        const snow = document.createElement('div');
-        snow.className = 'snowflake';
-        snow.innerText = '❄';
-        snow.style.left = Math.random() * 100 + 'vw';
-        snow.style.animationDuration = Math.random() * 3 + 2 + 's';
-        snow.style.opacity = Math.random();
-        document.body.appendChild(snow);
-        setTimeout(() => snow.remove(), 5000);
+    function startGame(lang) {
+        currentLang = lang;
+        document.getElementById('lang-screen').style.display = 'none';
+        document.getElementById('hud').style.display = 'flex';
+        
+        // UI matnlarini o'zgartirish
+        document.getElementById('label-score').innerText = i18n[lang].score;
+        document.getElementById('label-time').innerText = i18n[lang].time;
+        
+        gameActive = true;
+        startTimer();
+        spawnHouse();
     }
-    setInterval(createSnow, 100);
 
-    // Controls
-    window.addEventListener('mousemove', (e) => moveSanta(e.clientX));
-    window.addEventListener('touchmove', (e) => moveSanta(e.touches[0].clientX));
+    // Santa harakati (Sichqoncha yoki Touch)
+    window.addEventListener('mousemove', (e) => { if(gameActive) moveSanta(e.clientX) });
+    window.addEventListener('touchmove', (e) => { if(gameActive) moveSanta(e.touches[0].clientX) });
 
     function moveSanta(x) {
-        if(!gameActive) return;
-        let pos = x - 40;
+        let pos = x - 25;
         if(pos < 0) pos = 0;
-        if(pos > window.innerWidth - 80) pos = window.innerWidth - 80;
-        santa.style.left = pos + 'px';
+        if(pos > window.innerWidth - 50) pos = window.innerWidth - 50;
+        document.getElementById('santa').style.left = pos + 'px';
     }
 
-    function spawnGift() {
+    // Sovg'a tashlash (Ekran bosilganda)
+    window.addEventListener('mousedown', dropGift);
+    window.addEventListener('touchstart', dropGift);
+
+    function dropGift() {
         if(!gameActive) return;
         const gift = document.createElement('div');
         gift.className = 'gift';
-        gift.innerText = ['🎁', '⭐', '🍭', '🦌', '🧨'][Math.floor(Math.random()*5)];
-        gift.style.left = Math.random() * (window.innerWidth - 40) + 'px';
-        gift.style.top = '-50px';
+        gift.innerText = '🎁';
+        gift.style.left = (document.getElementById('santa').offsetLeft + 10) + 'px';
+        gift.style.top = (window.innerHeight - 80) + 'px';
         document.body.appendChild(gift);
 
-        let fallSpeed = Math.random() * 2 + 3;
-        let pos = -50;
-
-        function animate() {
-            if(!gameActive) { gift.remove(); return; }
-            pos += fallSpeed;
-            gift.style.top = pos + 'px';
-
-            const sRect = santa.getBoundingClientRect();
-            const gRect = gift.getBoundingClientRect();
-
-            if (!(sRect.right < gRect.left || sRect.left > gRect.right || sRect.bottom < gRect.top || sRect.top > gRect.bottom)) {
-                if(gift.innerText === '🧨') {
-                    gameOver();
-                } else {
-                    score += 1;
-                    scoreEl.innerText = score;
+        let gPos = window.innerHeight - 80;
+        function fall() {
+            gPos += 5;
+            gift.style.top = gPos + 'px';
+            
+            // Uyga tegishini tekshirish
+            const houses = document.querySelectorAll('.house');
+            houses.forEach(h => {
+                const hRect = h.getBoundingClientRect();
+                const gRect = gift.getBoundingClientRect();
+                if(!(gRect.right < hRect.left || gRect.left > hRect.right || gRect.bottom < hRect.top || gRect.top > hRect.bottom)) {
+                    score++;
+                    document.getElementById('score').innerText = score;
                     gift.remove();
-                    return;
+                    h.innerText = '🏠✨'; // Uy yorishadi
                 }
-            }
+            });
 
-            if (pos > window.innerHeight) {
-                gift.remove();
-            } else {
-                requestAnimationFrame(animate);
-            }
+            if(gPos < window.innerHeight) requestAnimationFrame(fall);
+            else gift.remove();
         }
-        requestAnimationFrame(animate);
-        setTimeout(spawnGift, 800);
+        fall();
     }
 
-    function gameOver() {
-        gameActive = false;
+    function spawnHouse() {
+        if(!gameActive) return;
+        const house = document.createElement('div');
+        house.className = 'house';
+        house.innerText = '🏠';
+        house.style.left = window.innerWidth + 'px';
+        document.body.appendChild(house);
+
+        let hPos = window.innerWidth;
+        function move() {
+            hPos -= (3 + (score * 0.1)); // Tezlik oshib boradi
+            house.style.left = hPos + 'px';
+            if(hPos > -100) requestAnimationFrame(move);
+            else house.remove();
+        }
+        move();
+        setTimeout(spawnHouse, 1500);
+    }
+
+    function startTimer() {
+        const timer = setInterval(() => {
+            if(!gameActive) { clearInterval(timer); return; }
+            timeLeft--;
+            document.getElementById('time').innerText = timeLeft;
+            if(timeLeft <= 0) {
+                gameActive = false;
+                showGameOver();
+            }
+        }, 1000);
+    }
+
+    function showGameOver() {
         document.getElementById('msg').style.display = 'flex';
-        document.getElementById('final-score').innerText = score;
+        document.getElementById('game-over-title').innerText = i18n[currentLang].over;
+        document.getElementById('final-res').innerText = i18n[currentLang].res.replace('{s}', score);
+        document.getElementById('btn-restart').innerText = i18n[currentLang].restart;
     }
-
-    spawnGift();
 </script>
 </body>
 </html>
