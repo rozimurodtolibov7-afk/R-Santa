@@ -3,169 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R-Santa: Gift Delivery</title>
+    <title>R-Santa: Magic Tree</title>
     <style>
-        :root { --red: #e74c3c; --snow: #ecf0f1; --night: #1a1a2e; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: var(--night); overflow: hidden; touch-action: none; color: white; }
-        
-        /* Language Selection Screen */
-        #lang-screen {
-            position: fixed; inset: 0; background: var(--night);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
-        }
-        .lang-btn {
-            width: 200px; padding: 15px; margin: 10px; border: none; border-radius: 10px;
-            font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .uz { background: #005a9c; color: white; }
-        .ru { background: white; color: #0039a6; }
-        .en { background: #cf142b; color: white; }
+        :root { --gold: #f1c40f; --green: #27ae60; --night: #1a1a2e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--night); color: white; overflow: hidden; }
 
-        /* HUD (Heads-up Display) */
-        #hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 20px; z-index: 100; display: none; }
-        
-        .santa { position: absolute; bottom: 30px; font-size: 50px; transition: left 0.1s linear; z-index: 50; }
-        .house { position: absolute; bottom: 0; font-size: 60px; z-index: 10; }
-        .gift { position: absolute; font-size: 30px; z-index: 20; }
-        
-        #msg { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .btn { background: var(--red); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 20px; cursor: pointer; margin-top: 20px; }
+        /* HUD */
+        #top-bar { position: fixed; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; z-index: 100; }
+        .currency { background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* Main Game Area */
+        #game-area { height: 70vh; display: flex; align-items: center; justify-content: center; position: relative; }
+        #main-tree { font-size: 150px; transition: 0.5s; cursor: pointer; position: relative; }
+        .decoration { position: absolute; font-size: 30px; }
+
+        /* Bottom Menu */
+        #bottom-menu { height: 30vh; background: rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; border-top-radius: 20px; }
+        .menu-btn { background: var(--green); border: none; color: white; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .menu-btn span { font-size: 20px; margin-bottom: 5px; }
+
+        /* Modals */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: none; padding: 20px; overflow-y: auto; }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .item-card { background: #2c3e50; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #444; }
+        .close-btn { position: absolute; top: 10px; right: 10px; font-size: 30px; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="lang-screen">
-    <h1 style="margin-bottom: 20px;">CHOOSE LANGUAGE / ТИЛНИ ТАНЛАНГ</h1>
-    <button class="lang-btn uz" onclick="startGame('uz')">O'zbekcha 🇺🇿</button>
-    <button class="lang-btn ru" onclick="startGame('ru')">Русский 🇷🇺</button>
-    <button class="lang-btn en" onclick="startGame('en')">English 🇬🇧</button>
+<div id="top-bar">
+    <div class="currency">💰 <span id="rc-balance">100</span> RC</div>
+    <div onclick="showModal('lang')">🌐 Language</div>
 </div>
 
-<div id="hud">
-    <div><span id="label-score">Score</span>: <span id="score">0</span></div>
-    <div><span id="label-time">Time</span>: <span id="time">30</span>s</div>
+<div id="game-area">
+    <div id="main-tree">🎄</div>
 </div>
 
-<div id="msg">
-    <h1 id="game-over-title">O'YIN TUGADI</h1>
-    <p id="final-res">Siz 0 ta sovg'a yetkazdingiz</p>
-    <button class="btn" onclick="location.reload()" id="btn-restart">QAYTA O'YNASH</button>
+<div id="bottom-menu">
+    <button class="menu-btn" onclick="showModal('shop')"><span>🛒</span> <b id="m-shop">Shop</b></button>
+    <button class="menu-btn" onclick="showModal('chest')"><span>📦</span> <b id="m-chest">Chest</b></button>
+    <button class="menu-btn" onclick="showModal('gifts')"><span>🎁</span> <b id="m-gifts">Gifts</b></button>
+    <button class="menu-btn" onclick="showModal('collection')"><span>🖼️</span> <b id="m-coll">Collection</b></button>
+    <button class="menu-btn" onclick="saveToCollection()" style="background: #e67e22;"><span>💾</span> <b id="m-save">Save</b></button>
+    <button class="menu-btn" onclick="showModal('rating')"><span>🏆</span> <b id="m-rate">Rating</b></button>
 </div>
 
-<div class="santa" id="santa">🎅</div>
+<div id="modal-shop" class="modal">
+    <span class="close-btn" onclick="closeModal()">×</span>
+    <h2 id="s-title">Shop</h2>
+    <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+        <button onclick="switchShop('trees')" id="s-trees">Archalar</button>
+        <button onclick="switchShop('toys')" id="s-toys">O'yinchoqlar</button>
+    </div>
+    <div id="shop-content" class="shop-grid"></div>
+</div>
+
+<div id="modal-collection" class="modal">
+    <span class="close-btn" onclick="closeModal()">×</span>
+    <h2 id="c-title">My Collection</h2>
+    <div id="collection-gallery" class="shop-grid"></div>
+</div>
 
 <script>
     const i18n = {
-        uz: { score: "Sovg'alar", time: "Vaqt", over: "O'YIN TUGADI", res: "Siz {s} ta sovg'a yetkazdingiz", restart: "QAYTA O'YNASH" },
-        ru: { score: "Подарки", time: "Время", over: "ИГРА ОКОНЧЕНА", res: "Вы доставили {s} подарков", restart: "ИГРАТЬ СНОВА" },
-        en: { score: "Gifts", time: "Time", over: "GAME OVER", res: "You delivered {s} gifts", restart: "PLAY AGAIN" }
+        uz: { shop: "Do'kon", chest: "Sandig'im", gifts: "Sovg'alarim", coll: "Kolleksiyam", save: "Saqlash", rate: "Reyting", trees: "Archalar", toys: "Bezaklar" },
+        ru: { shop: "Магазин", chest: "Сундук", gifts: "Подарки", coll: "Коллекция", save: "Сохранить", rate: "Рейтинг", trees: "Ёлки", toys: "Игрушки" },
+        en: { shop: "Shop", chest: "My Chest", gifts: "My Gifts", coll: "Collection", save: "Save", rate: "Rating", trees: "Trees", toys: "Toys" }
     };
 
-    let currentLang = 'en';
-    let score = 0;
-    let timeLeft = 30;
-    let gameActive = false;
+    let user = { rc: 100, currentTree: '🎄', collection: [], toys: [] };
 
     function startGame(lang) {
-        currentLang = lang;
-        document.getElementById('lang-screen').style.display = 'none';
-        document.getElementById('hud').style.display = 'flex';
-        
-        // UI matnlarini o'zgartirish
-        document.getElementById('label-score').innerText = i18n[lang].score;
-        document.getElementById('label-time').innerText = i18n[lang].time;
-        
-        gameActive = true;
-        startTimer();
-        spawnHouse();
+        // Tilni sozlash
+        document.getElementById('m-shop').innerText = i18n[lang].shop;
+        document.getElementById('m-chest').innerText = i18n[lang].chest;
+        // ... qolgan tugmalar ham shunday o'zgaradi
     }
 
-    // Santa harakati (Sichqoncha yoki Touch)
-    window.addEventListener('mousemove', (e) => { if(gameActive) moveSanta(e.clientX) });
-    window.addEventListener('touchmove', (e) => { if(gameActive) moveSanta(e.touches[0].clientX) });
+    function showModal(id) { document.getElementById('modal-' + id).style.display = 'block'; }
+    function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
-    function moveSanta(x) {
-        let pos = x - 25;
-        if(pos < 0) pos = 0;
-        if(pos > window.innerWidth - 50) pos = window.innerWidth - 50;
-        document.getElementById('santa').style.left = pos + 'px';
-    }
+    const treesData = [
+        { img: '🎄', price: 0 }, { img: '🌲', price: 200 }, { img: '🌳', price: 500 }, { img: '❄️', price: 1000 }
+    ];
 
-    // Sovg'a tashlash (Ekran bosilganda)
-    window.addEventListener('mousedown', dropGift);
-    window.addEventListener('touchstart', dropGift);
-
-    function dropGift() {
-        if(!gameActive) return;
-        const gift = document.createElement('div');
-        gift.className = 'gift';
-        gift.innerText = '🎁';
-        gift.style.left = (document.getElementById('santa').offsetLeft + 10) + 'px';
-        gift.style.top = (window.innerHeight - 80) + 'px';
-        document.body.appendChild(gift);
-
-        let gPos = window.innerHeight - 80;
-        function fall() {
-            gPos += 5;
-            gift.style.top = gPos + 'px';
-            
-            // Uyga tegishini tekshirish
-            const houses = document.querySelectorAll('.house');
-            houses.forEach(h => {
-                const hRect = h.getBoundingClientRect();
-                const gRect = gift.getBoundingClientRect();
-                if(!(gRect.right < hRect.left || gRect.left > hRect.right || gRect.bottom < hRect.top || gRect.top > hRect.bottom)) {
-                    score++;
-                    document.getElementById('score').innerText = score;
-                    gift.remove();
-                    h.innerText = '🏠✨'; // Uy yorishadi
-                }
+    function switchShop(type) {
+        let html = '';
+        if(type === 'trees') {
+            treesData.forEach(t => {
+                html += `<div class="item-card"><h1>${t.img}</h1><p>${t.price} RC</p><button onclick="buyTree('${t.img}', ${t.price})">Buy</button></div>`;
             });
-
-            if(gPos < window.innerHeight) requestAnimationFrame(fall);
-            else gift.remove();
+        } else {
+            html += `<div class="item-card"><h1>✨</h1><p>50 RC</p><button>Buy</button></div>`;
         }
-        fall();
+        document.getElementById('shop-content').innerHTML = html;
     }
 
-    function spawnHouse() {
-        if(!gameActive) return;
-        const house = document.createElement('div');
-        house.className = 'house';
-        house.innerText = '🏠';
-        house.style.left = window.innerWidth + 'px';
-        document.body.appendChild(house);
-
-        let hPos = window.innerWidth;
-        function move() {
-            hPos -= (3 + (score * 0.1)); // Tezlik oshib boradi
-            house.style.left = hPos + 'px';
-            if(hPos > -100) requestAnimationFrame(move);
-            else house.remove();
-        }
-        move();
-        setTimeout(spawnHouse, 1500);
+    function saveToCollection() {
+        // Kolleksiyaga saqlash
+        user.rc += 100;
+        document.getElementById('rc-balance').innerText = user.rc;
+        user.collection.push(user.currentTree);
+        alert("Qorbobo: 100 RC sovg'a qildi! 🎅🎁");
     }
 
-    function startTimer() {
-        const timer = setInterval(() => {
-            if(!gameActive) { clearInterval(timer); return; }
-            timeLeft--;
-            document.getElementById('time').innerText = timeLeft;
-            if(timeLeft <= 0) {
-                gameActive = false;
-                showGameOver();
-            }
-        }, 1000);
-    }
-
-    function showGameOver() {
-        document.getElementById('msg').style.display = 'flex';
-        document.getElementById('game-over-title').innerText = i18n[currentLang].over;
-        document.getElementById('final-res').innerText = i18n[currentLang].res.replace('{s}', score);
-        document.getElementById('btn-restart').innerText = i18n[currentLang].restart;
-    }
+    switchShop('trees'); // Default shop
 </script>
 </body>
 </html>
