@@ -1,46 +1,70 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>R-Santa: RC Edition</title>
+    <title>R-SANTA: Deluxe Edition</title>
     <style>
-        :root { --red: #ff4d4d; --gold: #ffd700; --dark: #050510; }
+        :root { --red: #ff3333; --gold: #ffd700; --green: #2ecc71; --dark: #010811; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--dark); color: white; margin: 0; font-family: sans-serif; overflow: hidden; touch-action: none; }
+        body { background: var(--dark); color: white; margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
 
-        /* Qor */
-        .snowflake { position: fixed; top: -10px; color: white; pointer-events: none; z-index: 1; animation: fall linear infinite; }
-        @keyframes fall { to { transform: translateY(110vh); } }
+        canvas#snowCanvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1; }
 
-        /* RC Panel */
         #top-bar { position: fixed; top: 15px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
-        .rc-panel { background: rgba(255,255,255,0.1); padding: 10px 25px; border-radius: 30px; border: 2px solid var(--gold); font-size: 22px; font-weight: bold; color: var(--gold); backdrop-filter: blur(10px); box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        .rc-panel { 
+            background: rgba(255,255,255,0.1); padding: 10px 30px; border-radius: 50px; 
+            border: 2px solid var(--gold); font-size: 26px; font-weight: bold; color: var(--gold);
+            backdrop-filter: blur(10px); box-shadow: 0 0 20px rgba(255,215,0,0.4);
+        }
 
-        /* Stage */
-        #stage { height: 60vh; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
-        .tree-svg { width: 280px; filter: drop-shadow(0 0 20px rgba(46, 204, 113, 0.4)); }
-        .toy-on-tree { position: absolute; font-size: 45px; cursor: move; z-index: 100; user-select: none; touch-action: none; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); }
+        /* Stage Area - Archa to'liq ko'rinishi uchun markazlashtirildi */
+        #stage { height: 60vh; display: flex; align-items: flex-end; justify-content: center; position: relative; z-index: 5; padding-bottom: 20px; }
+        .tree-svg { width: 300px; height: auto; filter: drop-shadow(0 0 25px var(--green)); margin-bottom: 10px; }
+        .toy-on-tree { position: absolute; font-size: 50px; cursor: grab; z-index: 100; user-select: none; touch-action: none; }
 
-        /* Santa */
-        #santa-gift { position: fixed; bottom: -500px; left: 50%; transform: translateX(-50%); transition: 0.8s; z-index: 2000; text-align: center; }
-        #santa-gift.active { bottom: 150px; }
+        #notify-pop { 
+            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(15px);
+            padding: 20px 40px; border-radius: 30px; border: 2px solid var(--gold);
+            transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 7000; text-align: center;
+        }
+        #notify-pop.active { top: 100px; }
+        #notify-pop h1 { font-size: 60px; margin: 0; }
+        #notify-pop p { margin: 5px 0 0; font-weight: bold; color: var(--gold); }
 
-        /* Menu */
-        #menu { height: 40vh; background: rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; border-radius: 30px 30px 0 0; border-top: 1px solid rgba(255,255,255,0.1); }
-        .btn { background: rgba(255,255,255,0.08); border: none; color: white; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 18px; }
-        .btn b { font-size: 35px; margin-bottom: 5px; }
-        .btn:active { transform: scale(0.95); background: rgba(255,255,255,0.15); }
-        .btn-rc { background: linear-gradient(45deg, #ff4d4d, #c0392b) !important; box-shadow: 0 5px 20px rgba(255,77,77,0.4); }
+        #menu { 
+            height: 40vh; background: linear-gradient(to top, #000, #001a33); 
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 25px; 
+            border-radius: 40px 40px 0 0; border-top: 1px solid rgba(255,255,255,0.2); position: relative; z-index: 1000;
+        }
+        .btn { 
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+            color: white; border-radius: 25px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        }
+        .btn b { font-size: 40px; margin-bottom: 5px; }
+        .btn:active { transform: scale(0.92); background: rgba(255,255,255,0.15); }
+        .btn-gift { background: linear-gradient(45deg, #ff4d4d, #c0392b) !important; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,77,77,0); } 100% { box-shadow: 0 0 0 0 rgba(255,77,77,0); } }
 
-        /* Modal */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; display: none; padding: 25px; overflow-y: auto; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .card { background: #161625; padding: 15px; border-radius: 20px; text-align: center; border: 1px solid #333; }
-        .card h1 { font-size: 45px; margin: 10px 0; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 5000; display: none; padding: 25px; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .card { background: #0a1122; padding: 15px; border-radius: 20px; text-align: center; border: 1px solid #222; }
+        .card h1 { font-size: 55px; margin: 5px 0; }
+        .buy-btn { width: 100%; border: none; background: var(--gold); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; color: #000; }
+        .close-btn { float: right; font-size: 40px; color: var(--red); cursor: pointer; }
     </style>
 </head>
 <body>
+
+<canvas id="snowCanvas"></canvas>
+
+<div id="notify-pop">
+    <h1 id="notify-emoji">🎅</h1>
+    <p id="notify-text">GIFT COLLECTED!</p>
+</div>
 
 <div id="top-bar">
     <div class="rc-panel">💰 <span id="rc-val">100</span> RC</div>
@@ -52,74 +76,98 @@
         <polygon points="100,60 190,170 10,170" fill="#27ae60" />
         <polygon points="100,110 200,240 0,240" fill="#1e8449" />
         <rect x="85" y="240" width="30" height="20" fill="#5d4037" />
+        <circle cx="100" cy="10" r="10" fill="#ffd700" />
     </svg>
-</div>
-
-<div id="santa-gift">
-    <div style="font-size: 100px;">🎅</div>
-    <div style="background:var(--red); padding:15px 30px; border-radius:20px; border:3px solid var(--gold);">
-        <h2 style="margin:0">HO-HO-HO!</h2>
-        <p>+100 RC sovg'a!</p>
-    </div>
 </div>
 
 <div id="menu">
     <button class="btn" onclick="openModal('shop')"><b>🛒</b>Shop</button>
     <button class="btn" onclick="openModal('chest')"><b>📦</b>Chest</button>
-    <button class="btn btn-rc" onclick="saveAndRC()"><b>💎</b>RC</button>
-    <button class="btn" onclick="playHolidayMusic()"><b>🎵</b>Music</button>
+    <button class="btn btn-gift" onclick="getGift()"><b>🎁</b>GIFT</button>
+    <button class="btn" onclick="toggleMusic()"><b>🎵</b>Music: <span id="m-status">OFF</span></button>
 </div>
 
 <div id="modal-shop" class="modal">
-    <h2 style="display:flex; justify-content:space-between">Bayram Do'koni <span onclick="closeModal()">×</span></h2>
+    <span class="close-btn" onclick="closeModal()">×</span>
+    <h2 style="color:var(--gold)">Christmas Market</h2>
     <div class="grid" id="shop-list"></div>
 </div>
 
 <div id="modal-chest" class="modal">
-    <h2 style="display:flex; justify-content:space-between">Mening Chest <span onclick="closeModal()">×</span></h2>
+    <span class="close-btn" onclick="closeModal()">×</span>
+    <h2 style="color:var(--green)">My Decorations</h2>
     <div class="grid" id="chest-list"></div>
 </div>
 
 <script>
     let db = { rc: 100, inventory: ['⭐'] };
-    
-    // Turfa xil o'yinchoqlar
+    let musicOn = false;
+    let audioCtx;
+    let musicLoopTimeout;
+
     const shopItems = [
-        {e:'🔴', p:30}, {e:'🔵', p:30}, {e:'🟡', p:30}, {e:'🟢', p:30}, {e:'🟣', p:40}, {e:'🟠', p:40},
-        {e:'🌟', p:100}, {e:'✨', p:150}, {e:'❄️', p:80}, {e:'🔔', p:60}, {e:'🍭', p:90}, {e:'🎁', p:200},
-        {e:'🕯️', p:120}, {e:'🎀', p:70}, {e:'🍪', p:50}, {e:'🌙', p:110}, {e:'💎', p:500}, {e:'🦄', p:1000}
+        {e:'🔴', p:20}, {e:'🔵', p:20}, {e:'🟡', p:20}, {e:'🟢', p:20},
+        {e:'🔔', p:50}, {e:'🍭', p:40}, {e:'❄️', p:60}, {e:'🌟', p:100},
+        {e:'🍦', p:80}, {e:'🍪', p:45}, {e:'🎁', p:150}, {e:'🦌', p:300},
+        {e:'⛄', p:250}, {e:'🎄', p:400}, {e:'🕯️', p:90}, {e:'✨', p:120},
+        {e:'🎀', p:70}, {e:'💎', p:1000}
     ];
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    function playNote(freq, dur, time) {
+    function notify(emoji, text) {
+        const pop = document.getElementById('notify-pop');
+        document.getElementById('notify-emoji').innerText = emoji;
+        document.getElementById('notify-text').innerText = text;
+        pop.classList.add('active');
+        setTimeout(() => pop.classList.remove('active'), 2500);
+    }
+
+    function toggleMusic() {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        musicOn = !musicOn;
+        document.getElementById('m-status').innerText = musicOn ? "ON" : "OFF";
+        if(musicOn) {
+            playFullMelody();
+        } else {
+            clearTimeout(musicLoopTimeout);
+        }
+    }
+
+    function playNote(freq, dur, startTime) {
+        if(!musicOn && freq > 0 && freq != 880) return; 
         const osc = audioCtx.createOscillator();
-        const msg = audioCtx.createGain();
-        osc.connect(msg); msg.connect(audioCtx.destination);
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
         osc.frequency.value = freq;
-        osc.start(audioCtx.currentTime + time);
-        msg.gain.setValueAtTime(0.1, audioCtx.currentTime + time);
-        msg.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + time + dur);
-        osc.stop(audioCtx.currentTime + time + dur);
+        osc.start(audioCtx.currentTime + startTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime + startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + startTime + dur);
+        osc.stop(audioCtx.currentTime + startTime + dur);
     }
 
-    function playHolidayMusic() {
-        // Jingle Bells ohangi
-        const melody = [
-            659, 659, 659, 659, 659, 659, 659, 783, 523, 587, 659,
-            698, 698, 698, 698, 698, 659, 659, 659, 659, 587, 587, 659, 587, 783
+    function playFullMelody() {
+        if(!musicOn) return;
+        const jingle = [
+            {f:659, d:0.3}, {f:659, d:0.3}, {f:659, d:0.6}, 
+            {f:659, d:0.3}, {f:659, d:0.3}, {f:659, d:0.6}, 
+            {f:659, d:0.3}, {f:783, d:0.3}, {f:523, d:0.3}, {f:587, d:0.3}, {f:659, d:1.0}, 
+            {f:698, d:0.3}, {f:698, d:0.3}, {f:698, d:0.3}, {f:698, d:0.3}, {f:698, d:0.3}, 
+            {f:659, d:0.3}, {f:659, d:0.3}, {f:659, d:0.15}, {f:659, d:0.15}, 
+            {f:783, d:0.3}, {f:783, d:0.3}, {f:698, d:0.3}, {f:587, d:0.3}, {f:523, d:0.8} 
         ];
-        melody.forEach((f, i) => playNote(f, 0.4, i * 0.35));
+        let time = 0;
+        jingle.forEach(n => {
+            playNote(n.f, n.d + 0.2, time);
+            time += n.d + 0.05;
+        });
+        musicLoopTimeout = setTimeout(() => { if(musicOn) playFullMelody(); }, time * 1000 + 1000);
     }
 
-    setInterval(() => {
-        const s = document.createElement('div');
-        s.className = 'snowflake'; s.innerHTML = '❄';
-        s.style.left = Math.random() * 100 + 'vw';
-        s.style.animationDuration = Math.random() * 3 + 2 + 's';
-        document.body.appendChild(s);
-        setTimeout(() => s.remove(), 5000);
-    }, 300);
+    function getGift() {
+        db.rc += 10;
+        updateRC();
+        notify("🎅", "HO-HO-HO! +10 RC");
+        if(audioCtx) playNote(880, 0.2, 0); 
+    }
 
     function openModal(id) { document.getElementById('modal-' + id).style.display = 'block'; render(id); }
     function closeModal() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
@@ -127,27 +175,28 @@
     function render(id) {
         let html = '';
         if(id === 'shop') {
-            shopItems.forEach(i => html += `<div class="card"><h1>${i.e}</h1><p>${i.p} RC</p><button onclick="buy('${i.e}', ${i.p})" style="width:100%; border:none; background:var(--gold); padding:10px; border-radius:12px; font-weight:bold">BUY</button></div>`);
+            shopItems.forEach(i => html += `<div class="card"><h1>${i.e}</h1><p>${i.p} RC</p><button class="buy-btn" onclick="buy('${i.e}', ${i.p})">BUY</button></div>`);
             document.getElementById('shop-list').innerHTML = html;
-        } else if(id === 'chest') {
-            db.inventory.forEach(i => html += `<div class="card" onclick="placeToy('${i}')"><h1>${i}</h1><p>Add</p></div>`);
+        } else {
+            db.inventory.forEach(i => html += `<div class="card" onclick="placeToy('${i}')"><h1>${i}</h1><p>ADD</p></div>`);
             document.getElementById('chest-list').innerHTML = html;
         }
     }
 
-    function buy(e, p) { 
-        if(db.rc >= p) { 
-            db.rc -= p; db.inventory.push(e); 
-            updateRC(); render('shop'); 
-            playNote(880, 0.1, 0); 
-        } else alert("RC yetarli emas!"); 
+    function buy(e, p) {
+        if(db.rc >= p) {
+            db.rc -= p; db.inventory.push(e);
+            updateRC(); render('shop'); closeModal();
+            notify(e, "ITEM PURCHASED!");
+        } else alert("Not enough RC!");
     }
 
     function placeToy(emoji) {
         const toy = document.createElement('div');
         toy.className = 'toy-on-tree';
         toy.innerText = emoji;
-        toy.style.left = '50%'; toy.style.top = '40%';
+        // O'yinchoqlarni archa ustiga qo'yishni osonlashtirish uchun:
+        toy.style.left = '45%'; toy.style.top = '40%';
         
         let isDragging = false;
         const move = (e) => {
@@ -164,18 +213,27 @@
         window.addEventListener('mousemove', move);
         window.addEventListener('touchmove', move);
 
-        document.body.appendChild(toy);
+        document.getElementById('stage').appendChild(toy);
         closeModal();
     }
 
-    function saveAndRC() {
-        const santa = document.getElementById('santa-gift');
-        db.rc += 100; updateRC();
-        santa.classList.add('active');
-        playNote(523, 0.5, 0);
-        setTimeout(() => santa.classList.remove('active'), 3000);
+    const canvas = document.getElementById('snowCanvas');
+    const ctx = canvas.getContext('2d');
+    let flakes = [];
+    function initSnow() {
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        for(let i=0; i<80; i++) flakes.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*3+1, s:Math.random()*2+1});
     }
-
+    function drawSnow() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "white"; ctx.beginPath();
+        flakes.forEach(f => {
+            ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
+            f.y += f.s; if(f.y > canvas.height) f.y = -5;
+        });
+        ctx.fill(); requestAnimationFrame(drawSnow);
+    }
+    initSnow(); drawSnow();
     function updateRC() { document.getElementById('rc-val').innerText = db.rc; }
     updateRC();
 </script>
